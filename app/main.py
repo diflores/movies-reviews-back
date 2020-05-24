@@ -1,8 +1,14 @@
+from typing import List
+
+import requests
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 
-from app.config import DATABASE_URI
+from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL
+from app.database_config import Reviews, ReviewsPydantic
+from app.review_models import ReviewSchema
+from app.user_models import User
 from app.user_router_config import fastapi_users
 
 app = FastAPI()
@@ -19,6 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+user_dependency = Depends(fastapi_users.get_current_active_user)
+
 app.include_router(fastapi_users.router, prefix="/users", tags=["users"])
 register_tortoise(
     app,
@@ -29,15 +37,36 @@ register_tortoise(
 )
 
 
-# @fastapi_users.on_after_register()
-# def on_after_register(user: User, request: Request):
-#     print(f"User {user.id} has registered.")
+@app.get("/")
+def home():
+    return {"Hello": "World"}
 
 
-# @fastapi_users.on_after_forgot_password()
-# def on_after_forgot_password(user: User, token: str, request: Request):
-#     print(f"User {user.id} has forgot their password. Reset token: {token}")
+# Protected route: Only available if user is logged in.
+@app.get("/search-movie")
+def search_movie(movie_title: str, user: User = user_dependency):
+    response = requests.get(f"{MOVIE_DATABASE_BASE_URL}", params={
+                            "api_key": MOVIE_DATABASE_API_KEY, "query": movie_title})
+    return response.json()
 
-@app.get('/protected-route', dependencies=[Depends(fastapi_users.get_current_user)])
-def protected_route():
-    return 'Hello, some user.'
+
+# Protected route: Only available if user is logged in.
+@app.post("/reviews", response_model=ReviewsPydantic)
+async def post_new_review(review: ReviewSchema, user: User = user_dependency):
+    review_dict = review.dict(exclude_unset=True)
+    review_dict["user_id"] = user.id
+    new_review = await Reviews.create(**review_dict)
+    return await ReviewsPydantic.from_tortoise_orm(new_review)
+
+
+# Protected route: Only available if user is logged in.
+@app.get("/reviews", response_model=List[ReviewsPydantic])
+async def get_all_reviews(user: User = user_dependency):
+    return await ReviewsPydantic.from_queryset(Reviews.all())
+
+
+# Protected route: Only available if user is logged in.
+@app.get("/users/{user_id}/reviews")
+async def get_user_reviews(user_id: str, user: User = user_dependency):
+    print(Reviews.get(user=user_id))
+    return await ReviewsPydantic.from_queryset(Reviews.filter(user=user_id))
