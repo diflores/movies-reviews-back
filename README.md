@@ -13,7 +13,7 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 ```
 
 2. Install requirements with: `poetry install`.
-3. Make sure you have the following environment variables:
+3. Make sure you have defined the following environment variables:
 
 ```
 SECRET_KEY
@@ -22,6 +22,8 @@ DATABASE_PASSWORD
 DATABASE_HOST
 DATABASE_PORT
 DATABASE_NAME
+MOVIE_DATABASE_API_KEY
+MOVIE_DATABASE_BASE_URL
 ```
 4. Run with `poetry run uvicorn app.main:app --reload`.
 5. See live documentation at http://127.0.0.1:8000/docs/.
