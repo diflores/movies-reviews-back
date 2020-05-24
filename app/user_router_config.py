@@ -1,12 +1,12 @@
 from fastapi_users import FastAPIUsers
 
 from app.config import SECRET_KEY
+from app.database_config import UsersPydantic
 from app.user_authentication import auth_backends
-from app.models import User, UserCreate, UserUpdate, UserDB
-from app.database_config import user_db
+from app.user_models import User, UserCreate, UserDB, UserUpdate
 
 fastapi_users = FastAPIUsers(
-    user_db,
+    UsersPydantic,
     auth_backends,
     User,
     UserCreate,

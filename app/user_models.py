@@ -7,15 +7,12 @@ class User(models.BaseUser):
 
 
 class UserCreate(User, models.BaseUserCreate):
-    first_name: str
-    last_name: str
+    pass
 
 
 class UserUpdate(User, models.BaseUserUpdate):
-    first_name: str
-    last_name: str
+    pass
 
 
 class UserDB(User, models.BaseUserDB):
-    first_name: str
-    last_name: str
+    pass
