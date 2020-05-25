@@ -24,6 +24,7 @@ DATABASE_PORT
 DATABASE_NAME
 MOVIE_DATABASE_API_KEY
 MOVIE_DATABASE_BASE_URL
+PRODUCTION_URL
 ```
 4. Run with `poetry run uvicorn app.main:app --reload`.
 5. See live documentation at http://127.0.0.1:8000/docs/.
