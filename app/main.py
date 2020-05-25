@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 
-from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL
+from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL, PRODUCTION_URL
 from app.database_config import Reviews, ReviewsPydantic
 from app.review_models import ReviewSchema
 from app.user_models import User
@@ -16,6 +16,8 @@ app = FastAPI()
 origins = [
     "http://localhost:8080",
 ]
+if PRODUCTION_URL:
+    origins.append(PRODUCTION_URL)
 
 app.add_middleware(
     CORSMiddleware,
