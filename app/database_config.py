@@ -16,10 +16,11 @@ class Reviews(Model):
     user = fields.ForeignKeyField("models.Users", related_name="reviews")
     movie_id = fields.IntField(unique=False)
     review = fields.TextField(unique=False)
+    rating = fields.IntField(unique=False, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
 
 
 Tortoise.init_models(["app.database_config"], "models")
 UsersPydantic = TortoiseUserDatabase(UserDB, Users)
 ReviewsPydantic = pydantic_model_creator(Reviews, name="Reviews", include=(
-                                         "id", "user_id", "movie_id", "review", "created_at"))
+                                         "id", "user_id", "movie_id", "review", "rating", "created_at",))
