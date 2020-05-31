@@ -3,11 +3,12 @@ from typing import List
 import requests
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 
 from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL, PRODUCTION_URL
-from app.database_config import Reviews, ReviewsPydantic
-from app.review_models import ReviewSchema
+from app.database_config import Reviews
+from app.review_models import ReviewSchemaBasic, ReviewSchemaShow
 from app.user_models import User
 from app.user_router_config import fastapi_users
 
@@ -37,6 +38,7 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True,
 )
+Tortoise.init_models(["__main__"], "models")
 
 
 @app.get("/")
@@ -144,27 +146,61 @@ async def get_movie_credits(movie_id=int, user: User = user_dependency):
 
 
 # Protected route: Only available if user is logged in.
-@app.get("/movies/{movie_id}/reviews")
-async def get_movie_reviews(movie_id: str, user: User = user_dependency):
-    return await ReviewsPydantic.from_queryset(Reviews.filter(movie_id=movie_id))
-
-
-# Protected route: Only available if user is logged in.
-@app.post("/reviews", response_model=ReviewsPydantic)
-async def post_new_review(review: ReviewSchema, user: User = user_dependency):
+@app.post("/reviews", response_model=ReviewSchemaShow)
+async def post_new_review(review: ReviewSchemaBasic, user: User = user_dependency):
     review_dict = review.dict(exclude_unset=True)
     review_dict["user_id"] = user.id
     new_review = await Reviews.create(**review_dict)
-    return await ReviewsPydantic.from_tortoise_orm(new_review)
+    result = await Reviews.get(id=new_review.id).values("id",
+                                                        "user_id",
+                                                        "movie_id",
+                                                        "review",
+                                                        "rating",
+                                                        "created_at",
+                                                        user_first_name="user__first_name",
+                                                        user_last_name="user__last_name",
+                                                        user_email="user__email")
+
+    return result[0]
 
 
 # Protected route: Only available if user is logged in.
-@app.get("/reviews", response_model=List[ReviewsPydantic])
+@app.get("/movies/{movie_id}/reviews", response_model=List[ReviewSchemaShow])
+async def get_movie_reviews(movie_id: str, user: User = user_dependency):
+    return await Reviews.filter(movie_id=movie_id).values("id",
+                                                          "user_id",
+                                                          "movie_id",
+                                                          "review",
+                                                          "rating",
+                                                          "created_at",
+                                                          user_first_name="user__first_name",
+                                                          user_last_name="user__last_name",
+                                                          user_email="user__email")
+
+
+# Protected route: Only available if user is logged in.
+@app.get("/reviews")
 async def get_all_reviews(user: User = user_dependency):
-    return await ReviewsPydantic.from_queryset(Reviews.all())
+    return await Reviews.all().values("id",
+                                      "user_id",
+                                      "movie_id",
+                                      "review",
+                                      "rating",
+                                      "created_at",
+                                      user_first_name="user__first_name",
+                                      user_last_name="user__last_name",
+                                      user_email="user__email")
 
 
 # Protected route: Only available if user is logged in.
-@app.get("/users/{user_id}/reviews")
+@app.get("/users/{user_id}/reviews", response_model=List[ReviewSchemaShow])
 async def get_user_reviews(user_id: str, user: User = user_dependency):
-    return await ReviewsPydantic.from_queryset(Reviews.filter(user=user_id))
+    return await Reviews.filter(user=user_id).values("id",
+                                                     "user_id",
+                                                     "movie_id",
+                                                     "review",
+                                                     "rating",
+                                                     "created_at",
+                                                     user_first_name="user__first_name",
+                                                     user_last_name="user__last_name",
+                                                     user_email="user__email")
