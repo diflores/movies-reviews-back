@@ -135,7 +135,22 @@ async def get_movie_info(movie_id=int, user: User = user_dependency):
 
 
 # Protected route: Only available if user is logged in.
-@ app.post("/reviews", response_model=ReviewsPydantic)
+@app.get("/movies/{movie_id}/credits")
+async def get_movie_credits(movie_id=int, user: User = user_dependency):
+    response = requests.get(f"{MOVIE_DATABASE_BASE_URL}/movie/{movie_id}/credits", params={
+        "api_key": MOVIE_DATABASE_API_KEY
+    })
+    return response.json()
+
+
+# Protected route: Only available if user is logged in.
+@app.get("/movies/{movie_id}/reviews")
+async def get_movie_reviews(movie_id: str, user: User = user_dependency):
+    return await ReviewsPydantic.from_queryset(Reviews.filter(movie_id=movie_id))
+
+
+# Protected route: Only available if user is logged in.
+@app.post("/reviews", response_model=ReviewsPydantic)
 async def post_new_review(review: ReviewSchema, user: User = user_dependency):
     review_dict = review.dict(exclude_unset=True)
     review_dict["user_id"] = user.id
@@ -144,12 +159,12 @@ async def post_new_review(review: ReviewSchema, user: User = user_dependency):
 
 
 # Protected route: Only available if user is logged in.
-@ app.get("/reviews", response_model=List[ReviewsPydantic])
+@app.get("/reviews", response_model=List[ReviewsPydantic])
 async def get_all_reviews(user: User = user_dependency):
     return await ReviewsPydantic.from_queryset(Reviews.all())
 
 
 # Protected route: Only available if user is logged in.
-@ app.get("/users/{user_id}/reviews")
+@app.get("/users/{user_id}/reviews")
 async def get_user_reviews(user_id: str, user: User = user_dependency):
     return await ReviewsPydantic.from_queryset(Reviews.filter(user=user_id))
