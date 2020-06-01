@@ -4,6 +4,6 @@ from app.config import SECRET_KEY
 
 auth_backends = []
 
-jwt_authentication = JWTAuthentication(secret=SECRET_KEY, lifetime_seconds=3600)
+jwt_authentication = JWTAuthentication(secret=SECRET_KEY, lifetime_seconds=10800)
 
 auth_backends.append(jwt_authentication)
