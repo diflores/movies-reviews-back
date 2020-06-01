@@ -7,7 +7,7 @@ from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 
 from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL, PRODUCTION_URL
-from app.database_config import Reviews
+from app.database_config import Reviews, UsersPydantic
 from app.review_models import ReviewSchemaBasic, ReviewSchemaShow
 from app.user_models import User
 from app.user_router_config import fastapi_users
@@ -44,6 +44,11 @@ Tortoise.init_models(["__main__"], "models")
 @app.get("/")
 def home():
     return {"Hello": "World"}
+
+
+@app.get("/users/profile/{user_id}", response_model=User)
+async def get_user_info(user_id, user: User = user_dependency):
+    return await UsersPydantic.get(id=user_id)
 
 
 # Protected route: Only available if user is logged in.
