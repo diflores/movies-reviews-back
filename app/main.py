@@ -58,6 +58,13 @@ def search_movie(movie_title: str, user: User = user_dependency):
                             "api_key": MOVIE_DATABASE_API_KEY, "query": movie_title})
     return response.json()
 
+# Protected route: Only available if user is logged in.
+@app.get("/genres")
+def get_genres(user: User = user_dependency):
+    response = requests.get(f"{MOVIE_DATABASE_BASE_URL}/genre/movie/list", params={
+                            "api_key": MOVIE_DATABASE_API_KEY})
+    return response.json()
+
 
 # Protected route: Only available if user is logged in.
 @app.get("/discover-movie")
