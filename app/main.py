@@ -1,3 +1,5 @@
+# mypy: ignore-errors
+
 from typing import List
 
 import requests
@@ -6,7 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 
-from app.config import DATABASE_URI, MOVIE_DATABASE_API_KEY, MOVIE_DATABASE_BASE_URL, PRODUCTION_URL
+from app.config import (
+    DATABASE_URI,
+    MOVIE_DATABASE_API_KEY,
+    MOVIE_DATABASE_BASE_URL,
+    SVELTE_PRODUCTION_URL,
+    VUE_PRODUCTION_URL,
+)
 from app.database_config import Reviews, ReviewsPydantic, UsersPydantic
 from app.review_models import ReviewSchemaBasic
 from app.user_models import User
@@ -17,8 +25,12 @@ app = FastAPI()
 origins = [
     "http://localhost:8080",
 ]
-if PRODUCTION_URL:
-    origins.append(PRODUCTION_URL)
+
+if VUE_PRODUCTION_URL:
+    origins.append(VUE_PRODUCTION_URL)
+
+if SVELTE_PRODUCTION_URL:
+    origins.append(SVELTE_PRODUCTION_URL)
 
 app.add_middleware(
     CORSMiddleware,
